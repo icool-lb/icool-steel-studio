@@ -97,11 +97,11 @@ td.n{text-align:left;direction:ltr;font-weight:700}
 <div id="app">
 <header>
   <span id="logoBox"></span>
-  <div class="brand"><h1>Steel Studio <span style="font-size:10px;color:#F1471E">v2</span></h1>
+  <div class="brand"><h1>Steel Studio <span style="font-size:10px;color:#F1471E">v2.1</span></h1>
   <p>دراسة هياكل حديدية · برغولا · طاقة · هنغار</p></div>
 </header>
 
-<div id="tabs"></div>
+<div style="margin-inline-start:auto"><a href="panel-asbuilt-studio.html" style="font-family:Tajawal;font-weight:800;font-size:11.5px;color:#fff;background:#F1471E;padding:7px 12px;border-radius:8px;text-decoration:none;white-space:nowrap">🧰 استوديو التابلوه المنفّذ</a></div><div id="tabs"></div>
 
 <div id="main">
   <div id="stage">
@@ -5256,6 +5256,11 @@ if(autoRestore())dock();
   if(SKY.visible)SKY.position.copy(camera.position);
   renderer.render(scene,camera);
   hudDraw();})();
+</script>
+<script src="deye-realism-pack.js"></script>
+<script>/* تفعيل حزمة Deye الواقعية: كتالوج + واجهات + غرفة كهرباء واقعية */
+if(typeof DEYE_PATCH!=="undefined")DEYE_PATCH.patchPlatform();
+document.addEventListener("DOMContentLoaded",function(){try{var a=document.querySelector('a[href="panel-asbuilt-studio.html"]');if(a)a.target="_blank";}catch(e){}});
 </script>
 </body>
 </html>
