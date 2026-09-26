@@ -1,0 +1,14 @@
+# نظام
+.DS_Store
+Thumbs.db
+# أدوات
+node_modules/
+.vercel
+.env
+.env.*
+# محررات
+.vscode/
+.idea/
+# ملفات مؤقتة
+*.log
+*.tmp
