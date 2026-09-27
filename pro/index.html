@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#071827" />
+  <title>iCOOL Solar Pro</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell" id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><span></span></div>
+        <div class="brand-copy"><strong>iCOOL</strong><b>Solar Pro</b><small>Engineering Workspace</small></div>
+      </div>
+      <div class="workspace-label">مساحة العمل</div>
+      <nav id="nav"></nav>
+      <div class="sidebar-footer">
+        <div class="storage-card"><span class="storage-dot"></span><div><b>الحفظ المحلي فعّال</b><small>تُحفظ البيانات تلقائيًا</small></div></div>
+        <button class="ghost" id="backupBtn">تصدير نسخة احتياطية</button>
+        <label class="ghost file-label">استيراد نسخة<input id="restoreInput" type="file" accept="application/json" /></label>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="title-cluster">
+          <button id="menuBtn" class="menu-btn" aria-label="القائمة">☰</button>
+          <div>
+            <div class="eyebrow">iCOOL / SOLAR OPERATIONS</div>
+            <h1 id="pageTitle">لوحة التحكم</h1>
+            <p id="pageSubtitle">إدارة الدراسات والعروض والمشاريع</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="printBtn" title="طباعة">⎙</button>
+          <button class="primary" id="newProjectBtn"><span>＋</span> مشروع جديد</button>
+        </div>
+      </header>
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
