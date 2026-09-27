@@ -277,6 +277,159 @@ dock=function(){_dock2();try{
  else if(TAB==='wiz')wizUI(el);
 }catch(e){}};
 try{drawTabs();}catch(e){}
+
+/* ===================== v3.1: شاشة البداية الفارغة + لجنة المهندسين ===================== */
+try{CATS.push(['board','المهندسون']);}catch(e){}
+function pickDone(){window.__IC_EMPTY=0;const d=document.getElementById('icStart');if(d)d.remove();
+ try{build();fit();dock();}catch(e){}}
+function showStart(){
+ if(document.getElementById('icStart'))return;
+ const st=document.getElementById('stage');if(!st)return;
+ const d=document.createElement('div');d.id='icStart';
+ d.setAttribute('dir','rtl');
+ d.style.cssText='position:absolute;inset:0;background:rgba(238,242,246,.98);z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;overflow:auto';
+ const card=(ic,t,ds,act)=>'<button data-act="'+act+'" style="text-align:right;padding:12px;border-radius:12px;border:1.5px solid #dbe2e9;background:#fff;cursor:pointer;font-family:Tajawal">'
+  +'<div style="font-size:24px">'+ic+'</div><div style="font-size:13px;font-weight:800;color:#0B2239;margin:5px 0 3px">'+t+'</div>'
+  +'<div style="font-size:11px;color:#5b6b7a;line-height:1.6;font-weight:400">'+ds+'</div></button>';
+ d.innerHTML='<div style="font-size:21px;font-weight:800;color:#0B2239">مشروع جديد</div>'
+ +'<div style="font-size:12px;color:#5b6b7a;margin:4px 0 16px">لا يُعرض أي مبنى أو هيكل حديدي — اختر نقطة البداية:</div>'
+ +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;max-width:840px;width:100%">'
+ +card('🌍','ملف KML من Google Earth','ارفع ملف KML بمضلّعات السطح والعوائق ومبانٍ مسماة','kml')
+ +card('📐','مخطط أو صورة سقف','ارفع PDF/صورة وحدّد الحدود بالتتبّع والمعايرة','plan')
+ +card('✏️','رسم حر داخل المنصة','ارسم حدود السطح بنقرات مباشرة هنا','draw')
+ +card('📏','أبعاد يدوية','مستطيل أو حرف L بأبعاد معروفة','rect')
+ +card('🏗️','هيكل أرضي فقط','بدون مبنى — موقف سيارات أو أرض عمل','free')
+ +'</div>';
+ st.appendChild(d);
+ d.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{
+  const act=b.dataset.act;
+  if(act==='kml'){const inp=document.createElement('input');inp.type='file';inp.accept='.kml';
+   inp.onchange=()=>{if(inp.files[0]){pickDone();try{TAB='bld';drawTabs();dock();}catch(e){}loadKML(inp.files[0]);}};
+   inp.click();}
+  else if(act==='plan'){const inp=document.createElement('input');inp.type='file';inp.accept='image/*,application/pdf';
+   inp.onchange=()=>{const f=inp.files[0];if(!f)return;
+    if(/pdf$/i.test(f.name)){pickDone();TAB='img';drawTabs();dock();log('حُوّل الـPDF — حدّد المقياس ثم تتبّع السطح.');loadPDF(f);}
+    else{const r=new FileReader();r.onload=()=>{const im=new Image();
+      im.onload=()=>{pickDone();TAB='img';drawTabs();TR.img=im;TR.pts=[];TR.sc=null;TR.mode='scale';dock();
+       log('حدّد المقياس بنقطتين ثم تتبّع محيط السطح.');};im.src=r.result;};
+     r.readAsDataURL(f);}};
+   inp.click();}
+  else if(act==='draw'){startDrawMode(d);}
+  else if(act==='rect'){M.bOn=1;M.bShape='rect';pickDone();log('أدخل أبعاد السطح من تبويب «الموقع».');}
+  else if(act==='free'){M.bOn=0;pickDone();log('اضبط أبعاد الهيكل من التبويبات — لا يوجد مبنى.');}});}
+function startDrawMode(container){
+ container.innerHTML='<div style="font-size:16px;font-weight:800;color:#0B2239">ارسم حدود السطح — كل نقرة ضلع</div>'
+ +'<div style="font-size:11px;color:#5b6b7a;margin:4px 0">المقياس: 40 نقطة = 1 متر · انقر لإضافة رؤوس · زر إنهاء للتوليد</div>'
+ +'<canvas id="icDraw" style="background:#fff;border:1.5px solid #0B2239;border-radius:8px;touch-action:none"></canvas>'
+ +'<div style="display:flex;gap:6px;margin-top:8px"><button id="icDrawDone" style="background:#1a7f4b;border-color:#1a7f4b;color:#fff">✔ إنهاء وتوليد الموقع</button>'
+ +'<button id="icDrawUndo">تراجع</button><button id="icDrawCancel">إلغاء</button></div>';
+ const cv=container.querySelector('#icDraw');
+ cv.width=Math.min(760,innerWidth-60);cv.height=Math.min(480,innerHeight-260);
+ const x=cv.getContext('2d');let pts=[];
+ function dr(){x.clearRect(0,0,cv.width,cv.height);
+  x.strokeStyle='#0B2239';x.lineWidth=2;x.beginPath();
+  pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));
+  if(pts.length>2)x.closePath();x.stroke();
+  pts.forEach(p=>{x.fillStyle='#F1471E';x.beginPath();x.arc(p[0],p[1],4,0,7);x.fill();});
+  const a=pts.reduce((s,p)=>s+p[0],0)/(pts.length||1),b=pts.reduce((s,p)=>s+p[1],0)/(pts.length||1);
+  x.fillStyle='#0066A7';x.font='bold 12px Tajawal';x.textAlign='center';
+  const area=pts.length>2?Math.abs(pts.reduce((s,p,i)=>{const q=pts[(i+1)%pts.length];return s+p[0]*q[1]-q[0]*p[1];},0)/2)/1600:0;
+  x.fillText=void 0;x.fillText('النقاط: '+pts.length+(area>0?' · المساحة ≈ '+area.toFixed(1)+' م²':''),cv.width/2,18);}
+ cv.onclick=e=>{const r=cv.getBoundingClientRect();pts.push([e.clientX-r.left,e.clientY-r.top]);dr();};
+ container.querySelector('#icDrawUndo').onclick=()=>{pts.pop();dr();};
+ container.querySelector('#icDrawCancel').onclick=()=>showStart();
+ container.querySelector('#icDrawDone').onclick=()=>{
+  if(pts.length<3){log('حدّد 3 نقاط على الأقل.',1);return;}
+  const mx=Math.min.apply(null,pts.map(p=>p[0])),mz=Math.min.apply(null,pts.map(p=>p[1]));
+  TRACE_POLY=pts.map(p=>[+((p[0]-mx)/40).toFixed(2),+((p[1]-mz)/40).toFixed(2)]);
+  M.bShape='trace';M.bOn=1;
+  pickDone();TAB='bld';drawTabs();
+  log('رُسم السطح: '+TRACE_POLY.length+' رؤوس — أكمل من «الموقع» (طوابق/عمامة/نمط المبنى).');};
+ dr();}
+
+/* ---------- لجنة المهندسين: فحص حقيقي بعد كل build ---------- */
+const BOARD=[
+ {id:'sw',n:'مهندس البرمجيات',c:'#0066A7',run:function(){return[
+  ['ok','النواة v3.0 تعمل والبداية الفارغة مفعّلة'],
+  ['ok','المخزون والفواتير: '+(localStorage.getItem('icool-suite-v1')?'محفوظ':'بانتظار أول فاتورة')]];}},
+ {id:'ee',n:'مهندس الكهرباء',c:'#7A5CC4',run:function(){const o=[];try{
+  const ST=stringCalc();
+  if(!ST.best)o.push(['bad','لا يوجد تشريج صالح — راجع Voc والمحوّل']);
+  else{
+   if(ST.best.vmax>+M.invVmax)o.push(['bad','Voc بارد '+ST.best.vmax.toFixed(0)+'V > حد المحوّل '+M.invVmax+'V']);
+   else o.push(['ok','جهد السلاسل ضمن حدود المحوّل ('+ST.best.vmax.toFixed(0)+'V/'+M.invVmax+'V)']);
+   if(!ST.best.okI)o.push(['bad','تيار MPPT '+ST.best.iStr.toFixed(1)+'A > '+M.invIsc+'A']);
+   else o.push(['ok','التيار ضمن قدرة المداخل']);
+   const E=elecDesign();
+   o.push(['ok','الحمايات محسوبة: فيوز '+E.strFuse+'A · عازل '+E.dcIso+'A · قاطع خرج '+E.acBrk+'A']);
+   if((E.ph===3?400:230)>0&&E.cMain<E.cInv)o.push(['warn','مقطع الرئيسي أصغر من مقطع خرج المحوّل — راجع الجدول']);}return o;
+ }catch(e){return [['warn','تعذّر الفحص الكهربائي']];}}},
+ {id:'pv',n:'مهندس الطاقة الشمسية',c:'#E0862A',run:function(){const o=[];try{
+  const Z=sizePanels(),E=energyAll();
+  if(E.kwp<=0)o.push(['warn','لا توجد مصفوفة PV بعد — أكمل المعالج']);
+  else{
+   if(M.sysType!=='ongrid'&&Z.needOff>0&&Z.have<Z.needOff)
+    o.push(['bad','أسوأ شهر: المطلوب '+Z.needOff+' لوحاً والمركّب '+Z.have+' — التغطية غير كافية']);
+   else o.push(['ok','تغطية الأحمال '+(Z.cover*100).toFixed(0)+'%'+(Z.needOff?' · أسوأ شهر '+Z.needOff+' ≤ '+Z.have:'')]);
+   if(Math.abs(+M.ghiY-1900)<1)o.push(['warn','الإشعاع افتراضي (ساحل لبنان) — أدخل قيمة موقعك من PVGIS']);
+   if(PVSH&&PVSH.tot&&(PVSH.full+PVSH.part)/PVSH.tot>.1)o.push(['warn','ألواح مظللة الآن: '+((PVSH.full+PVSH.part)/PVSH.tot*100).toFixed(0)+'%']);}return o;
+ }catch(e){return [['warn','تعذّر فحص الطاقة']];}}},
+ {id:'st',n:'مهندس الإنشاء والميكانيك',c:'#1a7f4b',run:function(){const o=[];try{
+  if(!R||!R.tot){o.push(['warn','لا يوجد هيكل بعد — أكمل المعالج']);return o;}
+  if(R.util>1)o.push(['bad','استغلال الفولاذ '+(R.util*100).toFixed(0)+'% — تجاوز الإجهاد المسموح']);
+  else o.push(['ok','استغلال الفولاذ '+(R.util*100).toFixed(0)+'% · هبوط L/'+R.defR.toFixed(0)]);
+  if(R.FS<1.2)o.push(['bad','معامل الأمان ضد الرفع '+R.FS.toFixed(2)+' < 1.2 — ثبّت الوزن/المسامير']);
+  else o.push(['ok','الثبات ضد الرفع '+R.FS.toFixed(2)]);
+  if((R.boltT||0)>20)o.push(['warn','شدّ المسامير '+R.boltT.toFixed(1)+' kN مرتفع']);
+  o.push([R.kgm2>25?'warn':'ok','الوزن النوعي '+R.kgm2.toFixed(1)+' كغ/م²'+(R.kgm2>25?' — أعلى من المعتاد':''),'']);return o;
+ }catch(e){return [['warn','تعذّر الفحص الإنشائي']];}}},
+ {id:'fin',n:'المدير المالي',c:'#0B2239',run:function(){const o=[];
+  const miss=S.products.filter(p=>+p.price.sell<=0);
+  if(miss.length)o.push(['warn',miss.length+' منتجاً بلا سعر بيع — لن يدخل عرض السعر']);
+  const bad=S.products.filter(p=>+p.price.cost>0&&+p.price.sell>0&&+p.price.sell<+p.price.cost*1.1);
+  if(bad.length)o.push(['bad',bad.length+' منتجاً بيعه أقل من 1.1× التكلفة']);
+  if(!miss.length&&!bad.length)o.push(['ok','أسعار المكتبة سليمة']);
+  o.push(['ok','العملة USD · الضريبة اختيارية عند عرض السعر فقط']);return o;}},
+ {id:'pr',n:'مسؤول المشتريات والمخزون',c:'#B9603A',run:function(){const o=[];try{
+  const E=elecDesign();
+  const pan=S.products.find(p=>p.cat==='panel'),inv=S.products.find(p=>p.cat==='inverter');
+  const lacks=[];
+  if(pan&&NP>+(pan.stock.qty||0))lacks.push('ألواح '+NP+'/'+pan.stock.qty);
+  if(inv&&E.nInv>+(inv.stock.qty||0))lacks.push('إنفرتر '+E.nInv+'/'+inv.stock.qty);
+  if(E.bat){const bat=prod('deye-bos-gm');if(bat&&E.B.n>+(bat.stock.qty||0))lacks.push('بطاريات '+E.B.n+'/'+bat.stock.qty);}
+  if(lacks.length)o.push(['warn','نواقص: '+lacks.join(' · ')+' — سجّل فاتورة وارد']);
+  else o.push(['ok','المخزون يغطي مكوّنات التصميم']);
+  o.push([S.invoices.length?['ok'][0]:'warn','الفواتير المسجّلة: '+S.invoices.length]);return o;
+ }catch(e){return [['warn','تعذّر فحص المخزون']];}}}];
+let BOARD_RES=null;
+function runBoard(){try{BOARD_RES=BOARD.map(b=>({b:b,items:b.run()}));
+ const el=document.getElementById('dock');
+ if(el&&TAB==='board')boardUI(el);}catch(e){}}
+function boardUI(el){
+ if(!BOARD_RES)runBoard();
+ const TAG={ok:'t-ok',warn:'t-w',bad:'t-b'};
+ const TXT={ok:'سليم',warn:'تنبيه',bad:'خطأ'};
+ let h='<div class="grp">لجنة المهندسين — فحص مباشر للمشروع الحالي</div>';
+ BOARD_RES.forEach(r=>{
+  h+='<div style="border:1px solid #dbe2e9;border-radius:9px;padding:7px 9px;margin:6px 0;background:#fff">';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+   +'<span style="width:10px;height:10px;border-radius:50%;background:'+r.b.c+'"></span>'
+   +'<b style="font-size:11.5px;color:#0B2239">'+r.b.n+'</b></div>';
+  r.items.forEach(it=>{h+='<div style="font-size:10.5px;line-height:1.8;display:flex;gap:6px;align-items:baseline">'
+   +'<span class="tag '+TAG[it[0]]+'" style="flex:0 0 auto">'+TXT[it[0]]+'</span><span>'+esc(it[1])+'</span></div>';});
+  h+='</div>';});
+ h+='<button onclick="window.__IC_RERUN=1;runBoard();document.getElementById(\'dock\')&&boardUI(document.getElementById(\'dock\'))" style="width:100%">🔄 إعادة الفحص</button>';
+ el.innerHTML=h;}
+try{
+ const _build4=build;
+ build=function(){_build4();try{runBoard();}catch(e){}};
+ const _dock3=dock;
+ dock=function(){_dock3();try{const el=document.getElementById('dock');
+  if(el&&TAB==='board')boardUI(el);}catch(e){}};
+ drawTabs();
+ if(window.__IC_SKIPPED)showStart();
+}catch(e){log('v3.1: '+e.message,1);}
+
 window.ICPRO={S:S,stockIn:stockIn,stockOut:stockOut,prods:function(){return S.products;}};
 log('Pro Suite v3.0 جاهز: المعالج + المخزون والفواتير + عرض سعر $ بضريبة اختيارية.');
 })();
