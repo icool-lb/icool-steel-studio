@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iCOOL SOLAR PRO — المنصة الموحّدة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0B1B33;--card:#101F3A;--line:#1E3355;--orange:#FF6A3D;--txt:#E8EEF7;--muted:#93A5C0;--ok:#2ECC71;--warn:#F4B400;--bad:#FF5C5C}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tajawal,system-ui,sans-serif;background:var(--navy);color:var(--txt);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#0B1B33,#122647);border-bottom:2px solid var(--orange);padding:7px 14px;flex:0 0 auto;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:9px}
+.logo .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--orange),#C2451D);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px}
+.logo b{font-size:16px;letter-spacing:.5px}
+.logo small{display:block;font-size:9px;color:var(--muted);letter-spacing:2px}
+#projName{background:var(--card);border:1px solid var(--line);color:var(--txt);font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 10px;border-radius:8px;min-width:170px}
+header .sp{flex:1}
+button{font-family:inherit;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:11.5px}
+button.pri{background:var(--orange);border-color:var(--orange);color:#fff}
+main{flex:1;display:flex;min-height:0}
+#side{width:216px;border-inline-end:1px solid var(--line);padding:10px;overflow-y:auto;flex:0 0 auto}
+#side .st{display:flex;gap:8px;align-items:center;padding:7px 9px;border-radius:8px;margin:4px 0;font-size:11.5px;color:var(--muted)}
+#side .st.done{color:var(--txt)}
+#side .st .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:0 0 auto}
+#side .st.done .dot{background:var(--ok)}
+#frameWrap{flex:1;position:relative;min-width:0}
+#iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#eef2f6}
+#experts{width:308px;border-inline-start:1px solid var(--line);overflow-y:auto;padding:9px;flex:0 0 auto}
+.exp{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+.exp .hd{display:flex;align-items:center;gap:7px}
+.exp .hd .sw{width:10px;height:10px;border-radius:50%}
+.exp .hd b{font-size:11.5px}
+.exp .ch{font-size:9.5px;color:var(--muted);line-height:1.6;margin:4px 0;border-top:1px dashed var(--line);padding-top:4px}
+.f{display:flex;gap:6px;font-size:10.5px;line-height:1.7;align-items:baseline;margin:2px 0}
+.b{flex:0 0 auto;font-size:9px;font-weight:800;padding:1px 7px;border-radius:12px;color:#fff}
+.b.ok{background:var(--ok)}.b.warn{background:var(--warn)}.b.bad{background:var(--bad)}
+#status{font-size:10px;color:var(--muted);padding:4px 14px;border-top:1px solid var(--line);flex:0 0 auto}
+@media(max-width:900px){#side{display:none}#experts{width:250px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo"><div class="mark">iC</div>
+  <div><b>iCOOL <span style="color:var(--orange)">SOLAR PRO</span></b><small>ENGINEERING · COMMERCE · INVENTORY</small></div></div>
+ <input id="projName" placeholder="اسم المشروع…">
+ <div class="sp"></div>
+ <button class="pri" onclick="reqSnap(true)">🧑‍🔬 مراجعة اللجنة</button>
+ <button onclick="document.getElementById('iframe').contentWindow.focus()">⚙ الاستوديو الهندسي</button>
+</header>
+<main>
+ <div id="side"><div style="font-size:10.5px;color:var(--muted);font-weight:800;margin-bottom:6px">معالج المشروع</div><div id="steps"></div></div>
+ <div id="frameWrap"><iframe id="iframe" src="../index.html"></iframe></div>
+ <div id="experts"><div style="font-size:10.5px;color:var(--muted);font-weight:800;margin-bottom:6px">لجنة المهندسين — مراجعة مباشرة</div><div id="expList"></div></div>
+</main>
+<div id="status">القاعدة الموحّدة v4 · العملة USD · الضريبة اختيارية</div>
+<script src="core.js"></script>
+<script src="experts.js"></script>
+<script>
+const DB=IC_CORE.DB;const ifr=document.getElementById('iframe');
+let LAST=null;
+function reqSnap(manual){
+ try{ifr.contentWindow.postMessage({type:'ic-snap-request',projectId:DB.projects[0]?DB.projects[0].id:null},location.origin);}catch(e){}
+ if(manual)status('طُلبت مراجعة اللجنة…');}
+function status(t){document.getElementById('status').textContent='القاعدة الموحّدة v4 · '+t;}
+window.addEventListener('message',function(e){
+ if(e.origin!==location.origin)return;const d=e.data||{};
+ if(d.type==='ic-snap'){LAST=d.snap;render();}});
+function render(){
+ const s=LAST||{};s.store={products:DB.products,invoices:DB.invoices};
+ /* حفظ اللقطة في القاعدة الموحّدة */
+ DB.runtime={SITE:s.SITE,R:s.R,ST:s.ST,E:s.E,Z:s.Z,NP:s.NP,roomPin:s.roomPin};IC_CORE.save();
+ if(DB.projects[0]){DB.projects[0].updatedAt=new Date().toISOString();IC_CORE.save();}
+ /* مراجعة اللجنة */
+ const list=document.getElementById('expList');list.innerHTML='';
+ const findings=IC_EXPERTS.review(s);
+ IC_EXPERTS.E.forEach(function(ex){
+  const f=findings.filter(x=>x.expert===ex.id);
+  const bads=f.filter(x=>x.level==='bad').length;
+  const el=document.createElement('div');el.className='exp';
+  let h='<div class="hd"><span class="sw" style="background:'+ex.color+'"></span><b>'+ex.name+'</b>'
+   +(bads?'<span class="b bad" style="margin-inline-start:auto">'+bads+'</span>':'<span class="b ok" style="margin-inline-start:auto">✓</span>')+'</div>';
+  h+='<div class="ch">'+ex.charter+'</div>';
+  f.forEach(function(x){h+='<div class="f"><span class="b '+x.level+'">'+( {ok:'سليم',warn:'تنبيه',bad:'خطأ'})[x.level]+'</span><span>'+x.text+'</span></div>';});
+  el.innerHTML=h;list.appendChild(el);});
+ /* خطوات المعالج */
+ const st=IC_CORE.steps();const stEl=document.getElementById('steps');stEl.innerHTML='';
+ st.forEach(function(s2){const d=document.createElement('div');d.className='st'+(s2.done?' done':'');
+  d.innerHTML='<span class="dot"></span>'+s2.t+(s2.done?' ✓':'');stEl.appendChild(d);});
+ const bads=findings.filter(x=>x.level==='bad').length;
+ status(bads?('اللجنة: '+bads+' ملاحظة خطأ مفتوحة'):'اللجنة: الملف سليم وجاهز للاعتماد');}
+/* تهيئة */
+(function(){
+ IC_CORE.seedProducts();
+ const p=IC_CORE.listProjects()[0]||IC_CORE.upsertProject({name:'مشروع جديد'});
+ document.getElementById('projName').value=p.name;
+ document.getElementById('projName').onchange=function(){p.name=this.value;IC_CORE.save();};
+ ifr.addEventListener('load',()=>{setTimeout(()=>reqSnap(false),1200);});
+ setInterval(()=>reqSnap(false),8000);
+ render();})();
+</script>
+</body>
+</html>
