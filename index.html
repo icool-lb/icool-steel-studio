@@ -5257,6 +5257,170 @@ if(autoRestore())dock();
   renderer.render(scene,camera);
   hudDraw();})();
 </script>
+<script>
+/* ===== KML Architecture Pack v2.2 — أنماط المبنى: KML أو يدوي أو تتبع ===== */
+const ARCH={bldg:'مبنى — شبابيك وأشرطة',hang:'هنغار — جملون معدني وباب كبير',perg:'برغولا مفتوحة بلا جدران',flat:'مستودع مستوٍ بلا شبابيك'};
+F.bArch={l:'نمط المبنى الظاهر',t:'s',o:[['bldg','مبنى — شبابيك وأشرطة'],['hang','هنغار — جملون معدني'],['perg','برغولا مفتوحة بلا جدران'],['flat','مستودع مستوٍ بلا شبابيك']]};
+if(M.bArch===undefined)M.bArch='bldg';
+const _makeSite=makeSite;
+makeSite=function(){_makeSite();if(SITE)SITE.arch=M.bArch||'bldg';
+ if(OBSW)OBSW.forEach(o=>{if(o.arch===undefined)o.arch='bldg';});};
+const _loadKML=loadKML;
+loadKML=function(f){_loadKML(f);setTimeout(()=>{KMLP.forEach(o=>{if(o.arch)return;
+ if(/هنغار|hangar|shed|warehouse|مستودع/i.test(o.name||''))o.arch='hang';
+ else if(/برغول|pergola|gazebo|مظلة/i.test(o.name||''))o.arch='perg';
+ else if(/flat|مستوي/i.test(o.name||''))o.arch='flat';else o.arch='bldg';});dock();},400);};
+kmlApply=function(){
+ const sel=KMLP.filter(o=>o.role!=='skip');
+ const roof=sel.find(o=>o.role==='roof');
+ if(!roof){log('حدّد مضلّعاً واحداً كـ «السطح» قبل التطبيق.',1);return;}
+ if(sel.filter(o=>o.role==='roof').length>1){log('أكثر من مضلّع «السطح» — اختر واحداً فقط.',1);return;}
+ const lat0=roof.lat0,lon0=roof.lon0;
+ const rp=llToLocal(roof.ring,lat0,lon0);
+ const mnx=Math.min.apply(null,rp.map(p=>p[0])),mnz=Math.min.apply(null,rp.map(p=>p[1]));
+ KML_POLY=rp.map(p=>[p[0]-mnx,p[1]-mnz]);
+ OBS=sel.filter(o=>o!==roof).map(o=>({poly:llToLocal(o.ring,lat0,lon0).map(p=>[p[0]-mnx,p[1]-mnz]),
+  h:+o.h||1,base:o.role==='bldg'?-(M.bF*M.bFH||9):0,kind:o.role,name:o.name||ROLE[o.role],arch:o.arch||'bldg'}));
+ M.bArch=roof.arch||'bldg';
+ GEO={lat:lat0,lon:lon0,n:sel.length,file:1};
+ M.lat=+lat0.toFixed(5);M.lon=+lon0.toFixed(5);
+ M.bShape='kml';M.bOn=1;M.bRot=0;M.north=0;
+ makeSite();
+ const m=.6;
+ M.L=+Math.max(2,SITE.bb[0]-2*m).toFixed(2);
+ M.S=+Math.max(1.5,Math.min(SITE.bb[1]-2*m,12)).toFixed(2);
+ M.bOX=m;M.bOZ=m;
+ build();fit();dock();
+ log('تم بناء الموقع من KML بنمط «'+ARCH[M.bArch]+'».');};
+try{const _field=field;field=function(el,k){_field(el,k);
+ if(k==='bB'&&+M.bOn&&el)_field(el,'bArch');};}catch(e){}
+const _dock=dock;
+dock=function(){_dock();try{
+ document.querySelectorAll('#dock table').forEach(t=>{
+  if(t.innerHTML.indexOf('النمط')>=0||t.innerHTML.indexOf('الدور')<0)return;
+  const th=document.createElement('th');th.textContent='النمط المعماري';
+  t.rows[0].insertBefore(th,t.rows[0].children[3]);
+  Array.prototype.slice.call(t.rows,1).forEach(function(tr,ri){
+   const o=KMLP[ri];if(!o)return;
+   const td=document.createElement('td');
+   if(o.role!=='skip'&&o.role!=='stair'&&o.role!=='tank'){
+    const sa=document.createElement('select');
+    Object.keys(ARCH).forEach(function(a){const op=document.createElement('option');
+     op.value=a;op.textContent=ARCH[a];if(o.arch===a)op.selected=true;sa.appendChild(op);});
+    sa.onchange=function(){o.arch=sa.value;};td.appendChild(sa);}else td.textContent='—';
+   tr.insertBefore(td,tr.children[3]);});});}catch(e){}};
+drawSite=function(){
+ clr(gSite);WINM.length=0;if(!SITE)return;
+ const P=SITE.poly.map(function(q){return [q[0]-M.bOX,q[1]-M.bOZ];});
+ const H=Math.max(0,M.bF*M.bFH);
+ const F=finish();
+ const arch=SITE.arch||'bldg';
+ const sh=new THREE.Shape();
+ P.forEach(function(p,i){i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]);});
+ if(H>0&&+M.sky){
+  const R=Math.max(SITE.bb[0],SITE.bb[1])*4+30;
+  const ap=new THREE.Mesh(new THREE.PlaneGeometry(R,R),MAT.apron);
+  ap.rotation.x=-Math.PI/2;
+  ap.position.set(SITE.bb[0]/2-M.bOX,-.30-H-.02,SITE.bb[1]/2-M.bOZ);
+  ap.receiveShadow=true;gSite.add(ap);}
+ if(arch!=='perg'){
+  const sl=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.30,bevelEnabled:false}),MAT.roofS);
+  sl.rotation.x=Math.PI/2;sl.receiveShadow=true;gSite.add(sl);}
+ if(H>0&&arch!=='perg'){
+  const ms=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:H,bevelEnabled:false}),matC(F.fac));
+  ms.rotation.x=Math.PI/2;ms.position.y=-.30;ms.receiveShadow=true;gSite.add(ms);}
+ const plH=Math.min(M.bFH,H);
+ for(let i=0;i<P.length;i++){
+  const a=P[i],b=P[(i+1)%P.length];
+  if(M.bPar>0){
+   gSite.add(tube(V(a[0],M.bPar/2,a[1]),V(b[0],M.bPar/2,b[1]),M.bParT,M.bPar,matC(F.fac)));
+   gSite.add(tube(V(a[0],M.bPar+.03,a[1]),V(b[0],M.bPar+.03,b[1]),M.bParT+.10,.06,matC(F.cop)));}
+  if(H<=0)continue;
+  if(plH>0)gSite.add(tube(V(a[0],-.30-H+plH/2,a[1]),V(b[0],-.30-H+plH/2,b[1]),.10,plH,matC(F.pl)));
+  if(arch==='bldg')for(let k=1;k<M.bF;k++){
+   const y=-.30-H*k/Math.max(M.bF,1);
+   gSite.add(tube(V(a[0],y,a[1]),V(b[0],y,b[1]),.12,.16,matC(F.band)));}
+  if(M.win&&arch==='bldg'){
+   const L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+   const n=Math.floor(L/2.6);
+   for(let k=0;k<M.bF;k++){
+    const y=-.30-H*(k+.55)/M.bF;
+    for(let j=0;j<n;j++){
+     const u0=(j+.5)/n-.58/L,u1=(j+.5)/n+.58/L;
+     const p1=V(a[0]+(b[0]-a[0])*u0,y,a[1]+(b[1]-a[1])*u0);
+     const p2=V(a[0]+(b[0]-a[0])*u1,y,a[1]+(b[1]-a[1])*u1);
+     gSite.add(tube(p1,p2,.10,1.46,matC(F.cop)));
+     const gl=tube(p1,p2,.14,1.22,MAT.glass);
+     if(gl){gSite.add(gl);WINM.push(gl);}}}}}
+ if(arch==='hang'&&H>0){
+  const rg=Math.min(SITE.bb[0],SITE.bb[1])*.22;
+  const x0=-M.bOX,z0=-M.bOZ,x1=x0+SITE.bb[0],z1=z0+SITE.bb[1];
+  const ye=-.30,midx=(x0+x1)/2,midz=(z0+z1)/2;
+  const quad=function(a,b,c,d){const g=new THREE.BufferGeometry();
+   g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]]),3));
+   g.computeVertexNormals();
+   const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:0x9AA3AB,side:THREE.DoubleSide}));
+   m.castShadow=true;m.receiveShadow=true;return m;};
+  const tri=function(px,pz,ry){const t=new THREE.Shape();
+   const w=(ry===0||ry===Math.PI)?SITE.bb[0]:SITE.bb[1];
+   t.moveTo(0,0);t.lineTo(w,0);t.lineTo(w/2,rg);t.closePath();
+   const m=new THREE.Mesh(new THREE.ExtrudeGeometry(t,{depth:.15,bevelEnabled:false}),matC(F.fac));
+   m.rotation.y=ry;m.position.set(px,ye,pz);m.castShadow=true;gSite.add(m);};
+  if(SITE.bb[0]>=SITE.bb[1]){
+   gSite.add(quad([x0,ye,z0],[x1,ye,z0],[x1,ye+rg,midz],[x0,ye+rg,midz]));
+   gSite.add(quad([x1,ye,z1],[x0,ye,z1],[x0,ye+rg,midz],[x1,ye+rg,midz]));
+   tri(x0,z0,Math.PI/2);tri(x0,z1,Math.PI/2);
+   const dh=Math.min(3.4,H-.4);
+   const door=new THREE.Mesh(new THREE.BoxGeometry(Math.min(4,SITE.bb[1]*.55),dh,.12),matC(0x39424B));
+   door.position.set(midx,-.30-H+dh/2,z1+.05);gSite.add(door);
+  }else{
+   gSite.add(quad([x0,ye,z0],[x0,ye,z1],[midx,ye+rg,z1],[midx,ye+rg,z0]));
+   gSite.add(quad([x1,ye,z1],[x1,ye,z0],[midx,ye+rg,z0],[midx,ye+rg,z1]));
+   tri(x0,z0,0);tri(x1,z0,0);
+   const dh=Math.min(3.4,H-.4);
+   const door=new THREE.Mesh(new THREE.BoxGeometry(.12,dh,Math.min(4,SITE.bb[0]*.55)),matC(0x39424B));
+   door.position.set(x1+.05,-.30-H+dh/2,midz);gSite.add(door);}}
+ if(arch==='perg'&&H>0){
+  const x0=-M.bOX,z0=-M.bOZ,x1=x0+SITE.bb[0],z1=z0+SITE.bb[1];
+  const post=matC(0x6E767D);
+  P.forEach(function(q){const c=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,Math.max(.5,H-.2),10),post);
+   c.position.set(q[0],-.30-(H-.2)/2,q[1]);c.castShadow=true;gSite.add(c);});
+  for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];
+   gSite.add(tube(V(a[0],-.30+H-.18,a[1]),V(b[0],-.30+H-.18,b[1]),.12,.16,post));}
+  const alongX=SITE.bb[0]>=SITE.bb[1];
+  const n=Math.max(4,Math.round(Math.max(SITE.bb[0],SITE.bb[1])/.35));
+  for(let i=0;i<=n;i++){
+   if(alongX){const xx=x0+i*(x1-x0)/n;
+    gSite.add(tube(V(xx,-.30+H-.04,z0),V(xx,-.30+H-.04,z1),.05,.03,MAT.slat));}
+   else{const zz=z0+i*(z1-z0)/n;
+    gSite.add(tube(V(x0,-.30+H-.04,zz),V(x1,-.30+H-.04,zz),.03,.05,MAT.slat));}}}
+ OBSW.forEach(function(o,oi){
+  if(!(o.h>0)||o.poly.length<3)return;
+  const s2=new THREE.Shape();
+  o.poly.forEach(function(q,i){const X=q[0]-M.bOX,Z=q[1]-M.bOZ;i?s2.lineTo(X,Z):s2.moveTo(X,Z);});
+  const bse=Math.min(+o.base||0,o.h-.05);
+  const m2=new THREE.Mesh(new THREE.ExtrudeGeometry(s2,{depth:o.h-bse,bevelEnabled:false}),
+   o.kind==='tank'?MAT.obs2:(o.kind==='bldg'?matC(NBCOL[oi%NBCOL.length]):MAT.obs));
+  m2.rotation.x=Math.PI/2;m2.position.y=o.h;m2.castShadow=true;gSite.add(m2);
+  if(o.arch==='bldg'&&o.h-bse>2.6){
+   const nf=Math.max(1,Math.round((o.h-bse)/3));
+   for(let k=0;k<nf;k++){
+    const y=bse+(o.h-bse)*(k+.55)/nf;
+    for(let e=0;e<o.poly.length;e++){
+     const a2=o.poly[e],b2=o.poly[(e+1)%o.poly.length];
+     const A=V(a2[0]-M.bOX,y,a2[1]-M.bOZ),Bp=V(b2[0]-M.bOX,y,b2[1]-M.bOZ);
+     if(A.distanceTo(Bp)<1.6)continue;
+     const gl=tube(A,Bp,.16,1.0,MAT.glass);
+     if(gl){gSite.add(gl);WINM.push(gl);}}}}
+  const cxz=o.poly.reduce(function(a,q){return [a[0]+q[0],a[1]+q[1]];},[0,0]);
+  gSite.add(lbl((o.name||ROLE[o.kind]||'عائق')+' '+o.h.toFixed(2)+' م',
+   V(cxz[0]/o.poly.length-M.bOX,o.h+.5,cxz[1]/o.poly.length-M.bOZ),'#8c5a13',1.7));});
+ gSite.add(lbl('السطح '+SITE.area.toFixed(1)+' م²'+(H>0?' · '+(ARCH[arch]||'').split(' — ')[0]+' · '+M.bF+' طوابق · '+H.toFixed(1)+' م':''),
+  V(SITE.bb[0]*.5-M.bOX,M.bPar+.45,-M.bOZ-.8),'#5b6b7a',1.8));
+ [[0,0],[M.L,0],[M.L,M.S],[0,M.S]].forEach(function(p,i,arr){
+  const q=arr[(i+1)%4];
+  gSite.add(tube(V(p[0],.02,p[1]),V(q[0],.02,q[1]),.04,.02,MAT.brace));});};
+</script>
 <script src="deye-realism-pack.js"></script>
 <script>/* تفعيل حزمة Deye الواقعية: كتالوج + واجهات + غرفة كهرباء واقعية */
 if(typeof DEYE_PATCH!=="undefined")DEYE_PATCH.patchPlatform();
