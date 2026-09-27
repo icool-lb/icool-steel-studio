@@ -124,7 +124,7 @@ td.n{text-align:left;direction:ltr;font-weight:700}
 <div id="ov"><div class="otop" id="ovTop"></div><div class="obody" id="ovBody"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
+<script>window.__IC_EMPTY=1;/* v3 بداية فارغة: لا مبنى ولا هيكل حتى يبدأ المستخدم */
 /* =======================================================================
    iCOOL Steel Studio v2.0
    منصة بارامترية لدراسة الهياكل الحديدية
@@ -1067,6 +1067,7 @@ function govR(){
   S.gov=g;S.nArr=ARR.length;S.g=g.g;
   return S;}
 function build(){
+  if(window.__IC_EMPTY){window.__IC_SKIPPED=1;return;}/* بداية فارغة */
   [gS,gC,gB,gD].forEach(clr);QTY={};KIND={};PC={};NP=0;PLATES=0;ANCH=0;PVINFO={};LEGS=[];PVM=[];
   STEEL_TOP=-1e9;PV_TOP=-1e9;PVBAND=null;
   makeSite();syncToArr();
