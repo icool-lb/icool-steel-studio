@@ -1,0 +1,191 @@
+{
+ "schema": "icool-product-v1",
+ "note": "أبعاد/أسعارapprox — تُدقق مع Datasheet قبل الاعتماد",
+ "products": [
+  {
+   "id": "deye-sun-8k-sg04lp3",
+   "brand": "Deye",
+   "cat": "inverter",
+   "name": "SUN-8K-SG04LP3",
+   "elec": {
+    "kw": 8,
+    "maxPv": 12,
+    "maxVoc": 900,
+    "mpptMin": 200,
+    "mpptMax": 850,
+    "mppt": 2,
+    "isc": 30
+   },
+   "mech": {
+    "w": 500,
+    "h": 440,
+    "d": 180,
+    "kg": 24
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  },
+  {
+   "id": "deye-sun-12k-sg04lp3",
+   "brand": "Deye",
+   "cat": "inverter",
+   "name": "SUN-12K-SG04LP3",
+   "elec": {
+    "kw": 12,
+    "maxPv": 18,
+    "maxVoc": 900,
+    "mpptMin": 200,
+    "mpptMax": 850,
+    "mppt": 2,
+    "isc": 40
+   },
+   "mech": {
+    "w": 520,
+    "h": 455,
+    "d": 185,
+    "kg": 27
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  },
+  {
+   "id": "deye-sun-50k-sg01hp3",
+   "brand": "Deye",
+   "cat": "inverter",
+   "name": "SUN-50K-SG01HP3-EUR",
+   "elec": {
+    "kw": 50,
+    "maxPv": 75,
+    "maxVoc": 1100,
+    "mpptMin": 250,
+    "mpptMax": 1000,
+    "mppt": 4,
+    "isc": 40
+   },
+   "mech": {
+    "w": 640,
+    "h": 530,
+    "d": 250,
+    "kg": 49
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  },
+  {
+   "id": "deye-bos-gm51",
+   "brand": "Deye",
+   "cat": "battery",
+   "name": "BOS-GM5.1",
+   "elec": {
+    "kwh": 5.12,
+    "v": 51.2,
+    "ah": 100
+   },
+   "mech": {
+    "w": 480,
+    "h": 220,
+    "d": 460,
+    "kg": 44
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  },
+  {
+   "id": "longi-himo-x6-580",
+   "brand": "LONGi",
+   "cat": "panel",
+   "name": "Hi-MO X6 580W",
+   "elec": {
+    "watts": 580,
+    "voc": 50.2,
+    "vmp": 42.1,
+    "isc": 13.9,
+    "imp": 13.1,
+    "tcv": -0.24,
+    "tcp": -0.35
+   },
+   "mech": {
+    "l": 2278,
+    "w": 1134,
+    "t": 35,
+    "kg": 27.5
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  },
+  {
+   "id": "ja-deepblue-575",
+   "brand": "JA Solar",
+   "cat": "panel",
+   "name": "DeepBlue 4.0 575W",
+   "elec": {
+    "watts": 575,
+    "voc": 49.8,
+    "vmp": 41.9,
+    "isc": 13.8,
+    "imp": 13.0,
+    "tcv": -0.24,
+    "tcp": -0.35
+   },
+   "mech": {
+    "l": 2278,
+    "w": 1134,
+    "t": 30,
+    "kg": 27.0
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  },
+  {
+   "id": "jinko-tiger-neo-590",
+   "brand": "Jinko",
+   "cat": "panel",
+   "name": "Tiger Neo 590W",
+   "elec": {
+    "watts": 590,
+    "voc": 53.1,
+    "vmp": 44.6,
+    "isc": 13.6,
+    "imp": 13.2,
+    "tcv": -0.24,
+    "tcp": -0.34
+   },
+   "mech": {
+    "l": 2278,
+    "w": 1134,
+    "t": 30,
+    "kg": 27.5
+   },
+   "price": {
+    "currency": "USD"
+   },
+   "stock": {
+    "qty": 0
+   }
+  }
+ ]
+}
